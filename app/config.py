@@ -1,19 +1,21 @@
 import os
-from langchain_openai import ChatOpenAI
+
 def get_openai_api_key() -> str:
     """
     Retrieve the OpenAI API key from environment variables.
-    Raises an exception if the key is not found.
+    Returns None if not found.
     """
     openai_api_key = os.getenv("OPENAI_API_KEY")
-    if not openai_api_key:
-        raise ValueError("❌ OPENAI_API_KEY not found. Please check your .env file.")
-    else:
+    if openai_api_key:
         print(f"✅ OPENAI_API_KEY loaded successfully!!!")
-        return openai_api_key
+    else:
+        print(f"⚠️ No OPENAI_API_KEY found. Using default model instead.")
     
-def get_llm() -> ChatOpenAI:
+    return openai_api_key
+
+def get_llm():
     """
     Get the LLM instance.
+    This is a stub that doesn't actually load a model, since we're not using the AI functions.
     """
-    return ChatOpenAI(model="gpt-4o", temperature=0.2, api_key=get_openai_api_key())
+    return None

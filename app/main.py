@@ -8,8 +8,9 @@ import os
 # Create static directory for images if it doesn't exist
 os.makedirs('app/static/images', exist_ok=True)
 
-# Load OpenAI API key:
+# Load OpenAI API key (but don't require it):
 openai_api_key = get_openai_api_key()
+# We don't actually need the API key anymore since we removed the AI dependencies
 
 st.set_page_config(
     page_title="📋 Business Analyst ICP Journal",
