@@ -164,7 +164,50 @@ def filter_insights_by_keyword(insights: str, keywords: List[str]) -> str:
         if any(keyword in line_lower for keyword in keywords):
             filtered_lines.append(line)
     
+    # Return the filtered text or an empty string if no matches
     return " ".join(filtered_lines)
+
+def get_default_insight(section_type: str) -> str:
+    """
+    Get default insights for a graph section when no AI insights are found
+    
+    Args:
+        section_type: Type of section (plans, financial, tenure, industry)
+        
+    Returns:
+        Default insight text
+    """
+    default_insights = {
+        "plans": """
+            A significant portion of subscribers are opting for the Basic plan, 
+            indicating a potential opportunity to enhance its features or introduce upsell 
+            strategies to transition users to higher-tier plans. The distribution suggests 
+            focusing marketing efforts on highlighting the value of premium tiers.
+        """,
+        
+        "financial": """
+            The monthly spend distribution reveals important spending patterns that can 
+            be leveraged for targeted pricing strategies. The churn rate analysis 
+            indicates opportunities for retention programs focused on at-risk segments.
+        """,
+        
+        "tenure": """
+            Customer tenure analysis shows correlation between subscription duration and 
+            spending levels. Longer-tenured customers tend to generate more predictable 
+            revenue, suggesting value in loyalty programs to extend customer lifetime value.
+        """,
+        
+        "industry": """
+            The industry distribution highlights key verticals that form your customer base. 
+            This suggests opportunities for industry-specific features or marketing campaigns 
+            targeting the most represented segments, while also identifying potential growth 
+            areas in underrepresented industries.
+        """
+    }
+    
+    # Clean up the text by removing extra whitespace
+    insight = default_insights.get(section_type, "")
+    return " ".join(line.strip() for line in insight.split('\n')).strip()
 
 def display_shopmax_report(sections: Dict[str, str], graphs: Dict[str, Any], 
                          metrics: Dict[str, Any], df: pd.DataFrame) -> None:
@@ -229,17 +272,18 @@ def display_shopmax_report(sections: Dict[str, str], graphs: Dict[str, Any],
         st.pyplot(graphs['Plan Distribution'])
     
     # Add graph insight for subscription plans
-    plan_insights = filter_insights_by_keyword(sections["insights"], ["subscription", "plan"])
+    plan_insights = filter_insights_by_keyword(sections["insights"], 
+                                              ["subscription", "plan", "tier", "basic", "premium", "enterprise"])
     
     if plan_insights:
         st.markdown('<div class="insightBox"><div class="insightTitle">📊 Graph Insight:</div>' + 
                    plan_insights + '</div>', unsafe_allow_html=True)
     else:
-        st.markdown("""
+        # Use default insight
+        st.markdown(f"""
         <div class="insightBox">
             <div class="insightTitle">📊 Graph Insight:</div>
-            A significant portion of subscribers are opting for the Basic plan, indicating a potential opportunity 
-            to enhance its features or introduce upsell strategies to transition users to higher-tier plans.
+            {get_default_insight("plans")}
         </div>
         """, unsafe_allow_html=True)
     
@@ -272,12 +316,20 @@ def display_shopmax_report(sections: Dict[str, str], graphs: Dict[str, Any],
     
     # Add financial insights
     financial_insights = filter_insights_by_keyword(
-        sections["insights"], ["spend", "financial", "churn", "revenue", "cost"]
+        sections["insights"], ["spend", "financial", "churn", "revenue", "cost", "pricing", "dollar", "$", "money"]
     )
     
     if financial_insights:
         st.markdown('<div class="insightBox"><div class="insightTitle">📊 Graph Insight:</div>' + 
                    financial_insights + '</div>', unsafe_allow_html=True)
+    else:
+        # Use default insight
+        st.markdown(f"""
+        <div class="insightBox">
+            <div class="insightTitle">📊 Graph Insight:</div>
+            {get_default_insight("financial")}
+        </div>
+        """, unsafe_allow_html=True)
     
     # Add spacing
     st.markdown("<br>", unsafe_allow_html=True)
@@ -302,12 +354,20 @@ def display_shopmax_report(sections: Dict[str, str], graphs: Dict[str, Any],
     
     # Add tenure insights
     tenure_insights = filter_insights_by_keyword(
-        sections["insights"], ["tenure", "retention", "loyal", "customer lifetime"]
+        sections["insights"], ["tenure", "retention", "loyal", "customer lifetime", "month", "churn", "duration"]
     )
     
     if tenure_insights:
         st.markdown('<div class="insightBox"><div class="insightTitle">📊 Graph Insight:</div>' + 
                    tenure_insights + '</div>', unsafe_allow_html=True)
+    else:
+        # Use default insight
+        st.markdown(f"""
+        <div class="insightBox">
+            <div class="insightTitle">📊 Graph Insight:</div>
+            {get_default_insight("tenure")}
+        </div>
+        """, unsafe_allow_html=True)
     
     # Add spacing
     st.markdown("<br>", unsafe_allow_html=True)
@@ -321,12 +381,20 @@ def display_shopmax_report(sections: Dict[str, str], graphs: Dict[str, Any],
         
         # Add industry insights
         industry_insights = filter_insights_by_keyword(
-            sections["insights"], ["industry", "sector", "vertical", "business type"]
+            sections["insights"], ["industry", "sector", "vertical", "business type", "market", "segment"]
         )
         
         if industry_insights:
             st.markdown('<div class="insightBox"><div class="insightTitle">📊 Graph Insight:</div>' + 
                        industry_insights + '</div>', unsafe_allow_html=True)
+        else:
+            # Use default insight
+            st.markdown(f"""
+            <div class="insightBox">
+                <div class="insightTitle">📊 Graph Insight:</div>
+                {get_default_insight("industry")}
+            </div>
+            """, unsafe_allow_html=True)
         
         # Add spacing
         st.markdown("<br>", unsafe_allow_html=True)
