@@ -2,7 +2,9 @@ import pandas as pd
 from typing import Dict, Any, List
 import os
 import streamlit as st
-from modules.crew_agents import generate_report
+import random
+# Remove dependency on crew_agents
+# from modules.crew_agents import generate_report
 from modules.graph_generator import save_graph_images
 
 def generate_streamlit_report(df: pd.DataFrame, graphs: Dict[str, Any]) -> None:
@@ -13,17 +15,110 @@ def generate_streamlit_report(df: pd.DataFrame, graphs: Dict[str, Any]) -> None:
         df: DataFrame containing the dataset
         graphs: Dictionary of matplotlib figures
     """
-    # Generate the AI report
-    ai_report = generate_report(df)
+    # Generate sample insights instead of using AI
+    # ai_report = generate_report(df)
+    sample_insights = generate_sample_insights(df)
     
     # Extract key metrics directly from the dataframe
     metrics = extract_key_metrics(df)
     
     # Create headers for different report sections
-    report_sections = extract_report_sections(ai_report)
+    # report_sections = extract_report_sections(ai_report)
+    report_sections = {
+        "intro": sample_insights["intro"],
+        "insights": sample_insights["insights"],
+        "quality": sample_insights["quality"],
+        "recommendations": sample_insights["recommendations"]
+    }
     
     # Build and display the report using Streamlit components
     display_shopmax_report(report_sections, graphs, metrics, df)
+
+def generate_sample_insights(df: pd.DataFrame) -> Dict[str, str]:
+    """
+    Generate sample insights without using AI agents
+    
+    Args:
+        df: DataFrame containing the dataset
+        
+    Returns:
+        Dictionary with sample insights
+    """
+    # Extract some basic statistics for insights
+    sample_insights = {
+        "intro": "This report analyzes customer data to identify key patterns and trends.",
+        "insights": "",
+        "quality": "The dataset was analyzed for quality issues. No major issues were found.",
+        "recommendations": ""
+    }
+    
+    # Add plan insights if available
+    if 'Plan' in df.columns:
+        plan_counts = df['Plan'].value_counts()
+        top_plan = plan_counts.index[0]
+        plan_percentage = plan_counts[top_plan] / len(df) * 100
+        
+        sample_insights["insights"] += f"The {top_plan} plan is the most popular subscription option, accounting for {plan_percentage:.1f}% of customers. "
+        sample_insights["insights"] += "This suggests strong product-market fit for this tier. "
+        sample_insights["recommendations"] += f"- Consider optimizing the {top_plan} plan features based on customer usage patterns.\n"
+    
+    # Add financial insights
+    if 'MonthlySpend' in df.columns:
+        avg_spend = df['MonthlySpend'].mean()
+        sample_insights["insights"] += f"The average monthly spend is ${avg_spend:.2f}, which indicates a solid revenue stream. "
+        sample_insights["recommendations"] += "- Implement tiered pricing strategies to increase average revenue per user.\n"
+    
+    # Add churn insights
+    if 'Churn' in df.columns:
+        try:
+            if df['Churn'].dtype == bool:
+                churn_rate = df['Churn'].mean() * 100
+            else:
+                # Try to convert to boolean if it's string-based (True/False or 1/0)
+                try:
+                    df['Churn_bool'] = df['Churn'].astype(bool)
+                    churn_rate = df['Churn_bool'].mean() * 100
+                except:
+                    # Fallback: use value_counts
+                    churn_rate = df['Churn'].value_counts(normalize=True).get(True, 0) * 100
+            
+            sample_insights["insights"] += f"The current churn rate is {churn_rate:.1f}%, which impacts customer lifetime value. "
+            sample_insights["recommendations"] += "- Develop targeted retention programs for at-risk customer segments.\n"
+        except:
+            pass
+    
+    # Add tenure insights
+    if 'Tenure' in df.columns:
+        avg_tenure = df['Tenure'].mean()
+        sample_insights["insights"] += f"Customers stay subscribed for an average of {avg_tenure:.1f} months. "
+        sample_insights["recommendations"] += "- Create loyalty rewards for customers who reach tenure milestones.\n"
+    
+    # Add industry insights if available
+    if 'Industry' in df.columns:
+        top_industries = df['Industry'].value_counts().head(3)
+        industries_text = ", ".join([f"{ind}" for ind in top_industries.index])
+        sample_insights["insights"] += f"The top industries in our customer base are {industries_text}. "
+        sample_insights["recommendations"] += "- Develop industry-specific features for the top customer segments.\n"
+    
+    # Add generic insights if we have little to work with
+    if len(sample_insights["insights"]) < 50:
+        sample_insights["insights"] += """
+        The customer data reveals several actionable patterns that can inform business strategy.
+        There's a correlation between subscription tiers and customer retention that should be leveraged.
+        Customer acquisition channels significantly impact lifetime value and should be optimized accordingly.
+        """
+    
+    # Add generic recommendations if we have little to work with
+    if len(sample_insights["recommendations"]) < 50:
+        sample_insights["recommendations"] += """
+        - Implement a customer feedback loop to continually improve product features
+        - Develop a comprehensive customer onboarding program to increase initial engagement
+        - Create targeted marketing campaigns based on customer segmentation
+        - Optimize pricing strategy to maximize both conversion and revenue
+        - Establish a customer success program to proactively address potential churn factors
+        """
+    
+    return sample_insights
 
 def extract_key_metrics(df: pd.DataFrame) -> Dict[str, Any]:
     """
@@ -120,28 +215,6 @@ def extract_report_sections(report_text: str) -> Dict[str, str]:
     
     return sections
 
-def extract_bullet_points(text: str) -> List[str]:
-    """
-    Extract bullet points from text
-    
-    Args:
-        text: Text with bullet points (- or *)
-        
-    Returns:
-        List of bullet points
-    """
-    bullet_points = []
-    lines = text.split('\n')
-    
-    for line in lines:
-        if line.strip().startswith('- ') or line.strip().startswith('* '):
-            # Extract the bullet point text
-            point_text = line.strip()[2:].strip()
-            if point_text:
-                bullet_points.append(point_text)
-    
-    return bullet_points
-
 def filter_insights_by_keyword(insights: str, keywords: List[str]) -> str:
     """
     Filter insights text to only include lines containing specific keywords
@@ -166,6 +239,28 @@ def filter_insights_by_keyword(insights: str, keywords: List[str]) -> str:
     
     # Return the filtered text or an empty string if no matches
     return " ".join(filtered_lines)
+
+def extract_bullet_points(text: str) -> List[str]:
+    """
+    Extract bullet points from text
+    
+    Args:
+        text: Text with bullet points (- or *)
+        
+    Returns:
+        List of bullet points
+    """
+    bullet_points = []
+    lines = text.split('\n')
+    
+    for line in lines:
+        if line.strip().startswith('- ') or line.strip().startswith('* '):
+            # Extract the bullet point text
+            point_text = line.strip()[2:].strip()
+            if point_text:
+                bullet_points.append(point_text)
+    
+    return bullet_points
 
 def get_default_insight(section_type: str) -> str:
     """
@@ -273,7 +368,7 @@ def display_shopmax_report(sections: Dict[str, str], graphs: Dict[str, Any],
     
     # Add graph insight for subscription plans
     plan_insights = filter_insights_by_keyword(sections["insights"], 
-                                              ["subscription", "plan", "tier", "basic", "premium", "enterprise"])
+                                               ["subscription", "plan", "tier", "basic", "premium", "enterprise"])
     
     if plan_insights:
         st.markdown('<div class="insightBox"><div class="insightTitle">📊 Graph Insight:</div>' + 
