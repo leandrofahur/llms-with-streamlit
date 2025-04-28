@@ -1,0 +1,54 @@
+# Byte-compiled Python files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+venv/
+env/
+
+# Django specific files
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Local development settings
+.local/
+.env
+
+# Media/uploads
+media/
+staticfiles/
+
+# Node.js and frontend files (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Docker-related files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Test and coverage results
+.coverage
+coverage/
+htmlcov/
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Cache directories
+__pycache__/
+*.swp
